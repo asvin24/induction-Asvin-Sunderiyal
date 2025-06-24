@@ -7,7 +7,7 @@ These packages include various ROS2 nodes, controllers, and scripts developed as
 ## Structure
 
 - `turtle_controller/`  
-  Contains ROS2 nodes for controlling TurtleSim and TurtleBot3.
+  Contains ROS2 nodes for controlling TurtleBot3.
 
 ## Usage
 
