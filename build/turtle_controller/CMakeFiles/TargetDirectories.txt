@@ -1,9 +1,0 @@
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/uninstall.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/turtle_controller_uninstall.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/test.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/edit_cache.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/rebuild_cache.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/list_install_components.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/install.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/install/local.dir
-/home/asvin/projectKratos/build/turtle_controller/CMakeFiles/install/strip.dir
