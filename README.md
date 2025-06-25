@@ -1,6 +1,6 @@
 # Project Kratos - ROS2 Packages
 
-This repository contains ROS2 packages created during the **induction tasks** for [Project Kratos](https://github.com/Project-Kratos).
+This repository contains ROS2 packages created during the **induction tasks** for Project Kratos.
 
 These packages include various ROS2 nodes, controllers, and scripts developed as part of the learning and evaluation process.
 
