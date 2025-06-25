@@ -1,0 +1,26 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/asvin/projectKratos/install/turtle_controller/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/build/turtlebot3_teleop",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_teleop/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/build/turtlebot3_example",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_example/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_msgs/local/lib/python3.10/dist-packages",
+        "/home/asvin/ros2_ws/build/my_robot_controller",
+        "/home/asvin/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/asvin/projectKratos/install/turtle_controller/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/build/turtlebot3_teleop",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_teleop/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/build/turtlebot3_example",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_example/lib/python3.10/site-packages",
+        "/home/asvin/turtlebot3_ws/install/turtlebot3_msgs/local/lib/python3.10/dist-packages",
+        "/home/asvin/ros2_ws/build/my_robot_controller",
+        "/home/asvin/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

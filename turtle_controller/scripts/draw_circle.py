@@ -8,13 +8,13 @@ class DrawCircleNode(Node):
     def __init__(self):
         super().__init__("draw_circle")
         self.cmd_vel_pub_=self.create_publisher(Twist,"/cmd_vel",10)
-        self.timer=self.create_timer(0.5,self.send_velocity_command)
+        self.timer=self.create_timer(0.05,self.send_velocity_command)
         self.get_logger().info("Draw circle node has been started")
 
         # Declare parameters with default values
-        self.declare_parameter("linear_x", 2.0)
+        self.declare_parameter("linear_x", 5.0)
         self.declare_parameter("linear_y", 0.0)
-        self.declare_parameter("angular_z", 1.0)
+        self.declare_parameter("angular_z", 2.0)
 
 
 
