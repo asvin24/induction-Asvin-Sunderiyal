@@ -19,9 +19,9 @@ class ObstacleAvoider(Node):
 
         self.vision=15
 
-        self.linear_speed = 1.5
-        self.angular_speed = -7.5
-        self.obstacle_distance_threshold = 0.5  # meters
+        self.linear_speed = 2.0
+        self.angular_speed = -5.0
+        self.obstacle_distance_threshold = 0.6
 
         self.timer = self.create_timer(0.1, self.set_velocity)
         self.obstacle_in_front = False
