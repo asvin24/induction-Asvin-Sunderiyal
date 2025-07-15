@@ -2,21 +2,19 @@
   "configurations": [
     {
       "browse": {
-        "databaseFilename": "${default}",
+        "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
         "limitSymbolsToIncludedHeaders": false
       },
       "includePath": [
-        "/home/asvin/turtlebot3_ws/install/turtlebot3_msgs/include/**",
         "/opt/ros/humble/include/**",
-        "/home/asvin/projectKratos/src/obstacle_avoider/include/**",
-        "/home/asvin/projectKratos/src/turtle_controller/include/**",
+        "/home/asvin/projectKratos/src/coordinate_follower/include/**",
         "/usr/include/**"
       ],
-      "name": "ROS",
+      "name": "ros2",
       "intelliSenseMode": "gcc-arm64",
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "gnu11",
-      "cppStandard": "c++14"
+      "cppStandard": "c++17"
     }
   ],
   "version": 4
