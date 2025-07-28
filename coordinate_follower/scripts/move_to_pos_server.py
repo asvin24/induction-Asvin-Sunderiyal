@@ -17,19 +17,15 @@ class MoveToPosServerNode(Node):
         self.get_logger().info("MoveToPosServerNode initialized.")
         self.cb_group = ReentrantCallbackGroup()
 
-        self.current_linear_x = 0.0
-        self.current_linear_y = 0.0
+        # Current pose in the odom frame
+        self.current_x = 0.0
+        self.current_y = 0.0
         self.yaw = 0.0
 
-        self.get_logger().info("Setting up publishers and subscribers.")
-
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-
         self.odom_sub = self.create_subscription(
             Odometry, '/odom', self.odom_callback, 10, callback_group=self.cb_group)
         
-        self.get_logger().info("Creating action server.")
-
         self.move_to_pos_server_ = ActionServer(
             self,
             MoveToPos,
@@ -38,121 +34,104 @@ class MoveToPosServerNode(Node):
             callback_group=self.cb_group
         )
 
-        self.linear_speed = 1.0
+        # Controller parameters
+        self.linear_speed = 1.0  # Reduced speed for better control
         self.angular_speed = 1.0
-        self.get_logger().info("Server node ready.")
+        self.linear_tolerance = 0.05  # 5cm tolerance
+        self.angular_tolerance = 0.05  # ~3 degrees
 
     def odom_callback(self, msg: Odometry):
-        self.current_linear_x = msg.pose.pose.position.x
-        self.current_linear_y = msg.pose.pose.position.y
-        x = msg.pose.pose.orientation.x
-        y = msg.pose.pose.orientation.y
-        z = msg.pose.pose.orientation.z
-        w = msg.pose.pose.orientation.w
-        self.roll, self.pitch, self.yaw = euler_from_quaternion([x, y, z, w])
+        # Odometry position is relative to starting position
+        self.current_x = msg.pose.pose.position.x
+        self.current_y = msg.pose.pose.position.y
+        orientation = msg.pose.pose.orientation
+        _, _, self.yaw = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
 
     def execute_callback(self, goal_handle):
-        self.get_logger().info(f"Received goal: ({goal_handle.request.x}, {goal_handle.request.y})")
+        self.get_logger().info(f"Executing goal: ({goal_handle.request.x}, {goal_handle.request.y})")
         feedback = MoveToPos.Feedback()
         result = MoveToPos.Result()
 
         target_x = goal_handle.request.x
         target_y = goal_handle.request.y
 
-        goal_active = True
+        # Control loop parameters
+        control_rate = self.create_rate(10)  # 10Hz
+        timer = None
 
-        self.get_logger().info("Initialized per-goal variables.")
-
-        def control_loop():
-            nonlocal goal_active
-            try:
-                if not goal_active:
-                    return
-
+        try:
+            while rclpy.ok():
+                # Check for cancelation
                 if goal_handle.is_cancel_requested:
-                    self.get_logger().info("Goal canceled by client.")
-                    self.cmd_vel_pub.publish(Twist())
                     goal_handle.canceled()
-                    goal_active = False
-                    timer.cancel()
-                    return
+                    self.get_logger().info("Goal canceled")
+                    result.success = False
+                    return result
 
-                delta_x = target_x - self.current_linear_x
-                delta_y = target_y - self.current_linear_y
-                distance = math.hypot(delta_x, delta_y)
+                # Calculate errors
+                dx = target_x - self.current_x
+                dy = target_y - self.current_y
+                distance = math.hypot(dx, dy)
+                target_yaw = math.atan2(dy, dx)
+                yaw_error = target_yaw - self.yaw
+                
+                # Normalize angle to [-pi, pi]
+                yaw_error = math.atan2(math.sin(yaw_error), math.cos(yaw_error))
 
-                feedback.x = self.current_linear_x
-                feedback.y = self.current_linear_y
+                # Update feedback
+                feedback.x = self.current_x
+                feedback.y = self.current_y
                 feedback.distance_from_goal = distance
                 goal_handle.publish_feedback(feedback)
 
-                twist = Twist()
-                target_theta = math.atan2(delta_y, delta_x)
-                delta_theta = target_theta - self.yaw
-                delta_theta = math.atan2(math.sin(delta_theta), math.cos(delta_theta))
-
-                if distance < 0.05:
-                    self.cmd_vel_pub.publish(Twist())
+                # Check if goal is reached
+                if distance < self.linear_tolerance:
+                    self.get_logger().info("Goal reached")
+                    self.cmd_vel_pub.publish(Twist())  # Stop the robot
                     result.success = True
-                    self.get_logger().info("Goal reached! Returning result.")
                     goal_handle.succeed()
-                    goal_active = False
-                    timer.cancel()
-                    return
+                    return result
 
-                if abs(delta_theta) > 0.1:
-                    twist.angular.z = self.angular_speed
-                    twist.linear.x = 0.0
-
+                # Create and send command
+                twist = Twist()
+                
+                # First align with target
+                if abs(yaw_error) > self.angular_tolerance:
+                    twist.angular.z = self.angular_speed * (1.0 if yaw_error > 0 else -1.0)
                 else:
-                    twist.angular.z = 0.0
-                    twist.linear.x = self.linear_speed
+                    # Then move forward
+                    twist.linear.x = self.linear_speed if distance>0.5 else 0.5*self.linear_speed # Reduce speed as we approach target
 
                 self.cmd_vel_pub.publish(twist)
-            except Exception as e:
-                self.get_logger().error(f"Exception in control_loop: {e}")
-                goal_active = False
-                try:
-                    timer.cancel()
-                except Exception:
-                    pass
+                control_rate.sleep()
 
-        self.get_logger().info("Creating timer for control loop.")
+        except Exception as e:
+            self.get_logger().error(f"Exception in execute_callback: {e}")
+            result.success = False
+            goal_handle.abort()
+            return result
+        finally:
+            # Ensure we stop the robot
+            self.cmd_vel_pub.publish(Twist())
+            if timer is not None:
+                timer.cancel()
 
-        timer = self.create_timer(
-            0.02, control_loop, callback_group=self.cb_group)
-        
-        self.get_logger().info("Timer started.")
-
-        while goal_active and rclpy.ok():
-            rclpy.spin_once(self, timeout_sec=0.05)
-        self.get_logger().info("Goal execution loop finished.")
-
-        try:
-            timer.cancel()
-            self.get_logger().info("Timer cleanup after goal.")
-        except Exception:
-            self.get_logger().error("Timer cleanup after goal failed.")
-
-        self.get_logger().info(f"Returning result: {result}")
+        result.success = False
         return result
 
 def main(args=None):
     rclpy.init(args=args)
     node = MoveToPosServerNode()
-    node.get_logger().info("Node created. Adding to executor.")
     executor = MultiThreadedExecutor(num_threads=4)
     executor.add_node(node)
-    node.get_logger().info("Executor started.")
     try:
         executor.spin()
     except KeyboardInterrupt:
-        node.get_logger().info("KeyboardInterrupt received, shutting down.")
+        pass
     finally:
         executor.shutdown()
         node.destroy_node()
         rclpy.shutdown()
-        node.get_logger().info("Shutdown complete.")
 
 if __name__ == "__main__":
     main()
